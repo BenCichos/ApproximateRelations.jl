@@ -8,7 +8,7 @@ makedocs(;
     authors="“BenCichos” <“b.cichos@me.com”> and contributors",
     sitename="ApproximateRelations.jl",
     format=Documenter.HTML(;
-        canonical="https://Benjamin Cichos.github.io/ApproximateRelations.jl",
+        canonical="https://BenCichos.github.io/ApproximateRelations.jl",
         edit_link="main",
         assets=String[],
     ),
@@ -18,6 +18,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/Benjamin Cichos/ApproximateRelations.jl",
+    repo="github.com/BenCichos/ApproximateRelations.jl",
     devbranch="main",
 )
