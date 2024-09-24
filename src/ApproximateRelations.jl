@@ -10,9 +10,9 @@ set_approx!(atol::Real) = :(get_approx() = $atol) |> eval
 const COMPARISON_FUNCTIONS = (:<, :<=, :>, :>=, :(==), :!=)
 const COMPARISON_TYPES = Union{typeof(<),typeof(<=),typeof(>),typeof(>=),typeof(==),typeof(!=)}
 
-approx(v1::Real, ::typeof(<), v2::Real; atol::Real=get_approx()) = v1 < v2 - atol
+approx(v1::Real, ::typeof(<), v2::Real; atol::Real=get_approx()) = v2 - v1 > atol
 approx(v1::Real, ::typeof(<=), v2::Real; atol::Real=get_approx()) = approx(v1, <, v2, atol=atol) || approx(v1, ==, v2, atol=atol)
-approx(v1::Real, ::typeof(>), v2::Real; atol::Real=get_approx()) = v1 - atol > v2
+approx(v1::Real, ::typeof(>), v2::Real; atol::Real=get_approx()) = v1 - v2 > atol
 approx(v1::Real, ::typeof(>=), v2::Real; atol::Real=get_approx()) = approx(v1, >, v2, atol=atol) || approx(v1, ==, v2, atol=atol)
 approx(v1::Real, ::typeof(==), v2::Real; atol::Real=get_approx()) = isapprox(v1, v2, atol=atol)
 approx(v1::Real, ::typeof(!=), v2::Real; atol::Real=get_approx()) = !isapprox(v1, v2, atol=atol)
