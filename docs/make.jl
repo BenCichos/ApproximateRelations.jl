@@ -6,14 +6,10 @@ DocMeta.setdocmeta!(ApproximateRelations, :DocTestSetup, :(using ApproximateRela
 makedocs(;
     authors="“BenCichos” <“b.cichos@me.com”> and contributors",
     sitename="ApproximateRelations.jl",
-    format=Documenter.HTML(;
-        canonical="https://BenCichos.github.io/ApproximateRelations.jl",
-        edit_link="main",
-        assets=String[],
-    ),
-    pages=[
-        "Home" => "index.md",
-    ],
+    pages = [
+            "Home" => "index.md"
+            "Docstrings" => "docstrings.md"
+        ]
 )
 
 deploydocs(;

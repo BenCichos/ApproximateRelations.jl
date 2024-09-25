@@ -1,4 +1,4 @@
-# ApproximateRelations
+# ApproximateRelations.jl
 
 Documentation for [ApproximateRelations](https://github.com/BenCichos/ApproximateRelations.jl).
 
@@ -67,6 +67,21 @@ second = @approx 1 == 1 + 1e-10
 third = @approx 1 > 1 - 1e-10
 first, second, third
 ```
+
+### Using `@approx` with `iszero` and `isone`
+
+The `@approx` macro also works seamlessly with Julia's built-in `iszero` and `isone` functions, allowing for approximate comparisons to zero and one. This is particularly useful when working with floating-point arithmetic where exact equality to zero or one might be difficult to achieve due to rounding errors.
+
+```@example tests
+x = 1e-12
+y = 1 + 1e-12
+
+first = @approx iszero(x)
+second = @approx isone(y)
+first, second
+```
+
+In this example, `x` is considered approximately zero, and `y` is considered approximately one, despite small deviations from the exact values.
 
 ### Custom tolerance
 
