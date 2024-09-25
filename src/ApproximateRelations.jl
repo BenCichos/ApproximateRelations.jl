@@ -28,11 +28,8 @@ function approx(v1::Real, cmp::COMPARISON_TYPES, v2::Real, args::Vararg{Union{CO
     approx(v2, next..., next_args...; atol=atol)
 end
 
-
 walkexpr(::Function, x) = x
-function walkexpr(f::Function, x::Expr)
-    f(x) |> x -> Expr(x.head, map(f, x.args)...)
-end
+walkexpr(f::Function, x::Expr) = f(x) |> x -> Expr(x.head, map(arg -> walkexpr(f, arg), x.args)...)
 export walkexpr
 
 function expand(__module__::Module, expr::Expr)
@@ -49,7 +46,6 @@ macro approx(atol::Real, expr::Expr)
     walkexpr(ex -> approx_expr(__module__, ex, atol), expr) |> esc
 end
 
-approx_expr(::Module, ex, ::Real) = ex
 function approx_expr(__module__::Module, ex::Expr, atol::Real)
     ex = expand(__module__, ex)
     head, args = ex.head, ex.args
@@ -65,7 +61,7 @@ end
 
 __init__() = (set_approx!(1e-10); set_expand_filter!(Symbol("@test")))
 
-export get_approx, set_approx!, set_approx_local!
+export get_approx, set_approx!
 export get_expand_filter, set_expand_filter!
 export approx, @approx
 
