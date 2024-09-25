@@ -28,10 +28,12 @@ function approx(v1::Real, cmp::COMPARISON_TYPES, v2::Real, args::Vararg{Union{CO
     approx(v2, next..., next_args...; atol=atol)
 end
 
-walk(x, ::Function) = x
-walk(x::Expr, inner::Function) = Expr(x.head, map(inner, x.args)...)
-walk(f::Function, x) = walk(f(x), x -> walk(f, x))
 
+walkexpr(::Function, x) = x
+function walkexpr(f::Function, x::Expr)
+    f(x) |> x -> Expr(x.head, map(f, x.args)...)
+end
+export walkexpr
 
 function expand(__module__::Module, expr::Expr)
     expr.head == :macrocall || return expr
@@ -44,7 +46,7 @@ macro approx(ex::Expr)
 end
 
 macro approx(atol::Real, expr::Expr)
-    walk(ex -> approx_expr(__module__, ex, atol), expr) |> esc
+    walkexpr(ex -> approx_expr(__module__, ex, atol), expr) |> esc
 end
 
 approx_expr(::Module, ex, ::Real) = ex
