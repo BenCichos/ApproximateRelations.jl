@@ -36,10 +36,10 @@ function get_approx end
 
 """
 ```
-    set_approx!(atol::Real) -> Real
+    @set_approx! atol::Real -> Real
 ```
 
-This function sets the current global absolute tolerance on the approximate comparison operators.
+This macro sets the current global absolute tolerance on the approximate comparison operators.
 
 # Arguments
 - `atol::Real`: the global absolute tolerance
@@ -47,10 +47,12 @@ This function sets the current global absolute tolerance on the approximate comp
 # Returns
 - `atol::Real`: the new global absolute tolerance
 """
-function set_approx! end
+macro set_approx! end
 
-set_approx!(atol::Real) = (:(get_approx() = $atol) |> eval; return atol)
-
+macro set_approx!(atol::Real)
+    :(get_approx() = $atol; return $atol)
+end
+export @set_approx!
 
 """
 ```
@@ -82,6 +84,14 @@ function set_expand_filter! end
 
 set_expand_filter!(macro_symbols::Symbol...) = (:(get_expand_filter() = $macro_symbols) |> eval; return macro_symbols)
 
+macro set_expand_filter!(expr_tuple::Expr...)
+    expr = first(expr_tuple)
+    head, args = expr.head, expr.args
+    head in (:tuple, :macrocall) || error("Invalid macro call expression")
+    macro_symbols = (head == :tuple) ? Tuple(first(expr.args) for expr in args) : (first(expr.args),)
+    :(get_expand_filter() = $macro_symbols; return $macro_symbols)
+end
+export @set_expand_filter!
 
 
 """
@@ -282,7 +292,9 @@ function approx_expr(__module__::Module, ex::Expr, atol::Real)
     return ex
 end
 
-__init__() = (set_approx!(1e-10); set_expand_filter!(Symbol("@test"), Symbol("@test_throws")))
+function __init__()
+    @set_approx! 1e-10
+end
 
 export get_approx, set_approx!
 export get_expand_filter, set_expand_filter!
