@@ -20,4 +20,4 @@ A Julia package for performing approximate comparisons between real numbers with
 The package provides a powerful and flexible way to handle real number comparisons
 and equality checks with customizable precision, making it ideal for numerical
 computations and testing scenarios where exact equality is impractical.
-"""
+
