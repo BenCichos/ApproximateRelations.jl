@@ -33,6 +33,7 @@ This function returns the current global absolute tolerance on the approximate c
 """
 function get_approx end
 
+get_approx() = 1e-10
 
 """
 ```
@@ -69,6 +70,8 @@ This function returns the current global filter for macro expansion in the appro
 
 """
 function get_expand_filter end
+
+get_expand_filter() = (Symbol("@test"), Symbol("@test_throws"))
 
 """
 ```
@@ -294,9 +297,6 @@ function approx_expr(__module__::Module, ex::Expr, atol::Real)
     head == :comparison && return :(approx($(args[1]), $(args[2]), $(args[3:end]...); atol=$atol))
     return ex
 end
-
-set_approx!(1e-10)
-@set_expand_filter! @test, @test_throws
 
 export get_approx, set_approx!
 export get_expand_filter, set_expand_filter!, @set_expand_filter!
