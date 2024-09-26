@@ -49,8 +49,11 @@ This macro sets the current global absolute tolerance on the approximate compari
 """
 macro set_approx! end
 
+set_approx!(atol::Real) = (:(get_approx() = $atol) |> eval; return atol)
+export set_approx!
+
 macro set_approx!(atol::Real)
-    :(get_approx() = $atol; return $atol)
+    :(set_approx!($atol))
 end
 export @set_approx!
 
@@ -89,7 +92,7 @@ macro set_expand_filter!(expr_tuple::Expr...)
     head, args = expr.head, expr.args
     head in (:tuple, :macrocall) || error("Invalid macro call expression")
     macro_symbols = (head == :tuple) ? Tuple(first(expr.args) for expr in args) : (first(expr.args),)
-    :(get_expand_filter() = $macro_symbols; return $macro_symbols)
+    :(set_expand_filter!($macro_symbols...))
 end
 export @set_expand_filter!
 
@@ -292,12 +295,11 @@ function approx_expr(__module__::Module, ex::Expr, atol::Real)
     return ex
 end
 
-function __init__()
-    @set_approx! 1e-10
-end
+set_approx!(1e-10)
+@set_expand_filter! @test, @test_throws
 
 export get_approx, set_approx!
-export get_expand_filter, set_expand_filter!
+export get_expand_filter, set_expand_filter!, @set_expand_filter!
 export approx, @approx
 
 end
