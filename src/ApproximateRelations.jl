@@ -31,7 +31,7 @@ This function returns the current global absolute tolerance on the approximate c
 # Returns
 - `Real` - current global absolute tolerance on approximate comparison operators
 """
-function get_approx end
+#function get_approx end
 
 # get_approx() = 1e-10
 
@@ -50,28 +50,24 @@ This macro sets the current global absolute tolerance on the approximate compari
 """
 macro set_approx! end
 
-# macro set_approx!(atol)
-#     quote
-#         atol_val = $(esc(atol))
-#         typeof(atol_val) <: Real || error("Invalid absolute tolerance value")
-#         $(ApproximateRelations).get_approx() = atol_val
-#         return atol_val
-#     end
-# end
-
-set_approx!(atol::Real) = @eval :(get_approx() = $atol)
-export set_approx!
-
 macro set_approx!(atol::Real)
-    :($(__module__).get_approx() = $atol; return $atol) |> esc
-end
+    quote
+        get_approx() = $atol
+        approx(v1::Real, ::typeof(<), v2::Real; atol::Real=$(__module__).get_approx()) = v2 - v1 > atol
+        approx(v1::Real, ::typeof(<=), v2::Real; atol::Real=$(__module__).get_approx()) = approx(v1, <, v2, atol=atol) || approx(v1, ==, v2, atol=atol)
+        approx(v1::Real, ::typeof(>), v2::Real; atol::Real=$(__module__).get_approx()) = v1 - v2 > atol
+        approx(v1::Real, ::typeof(>=), v2::Real; atol::Real=$(__module__).get_approx()) = approx(v1, >, v2, atol=atol) || approx(v1, ==, v2, atol=atol)
+        approx(v1::Real, ::typeof(==), v2::Real; atol::Real=$(__module__).get_approx()) = isapprox(v1, v2, atol=atol)
+        approx(v1::Real, ::typeof(!=), v2::Real; atol::Real=$(__module__).get_approx()) = !isapprox(v1, v2, atol=atol)
 
-# macro set_approx!(atol::Real)
-#     quote
-#         $(ApproximateRelations).get_approx() = $atol
-#         return $atol
-#     end
-# end
+        function approx(v1::Real, cmp::$(ApproximateRelations).COMPARISON_TYPES, v2::Real, args::Vararg{Union{$(ApproximateRelations).COMPARISON_TYPES,Real}}; atol::Real=$(__module__).get_approx())
+            next, next_args = args[1:2], args[3:end]
+            approx(v1, cmp, v2; atol=atol) || return false
+            approx(v2, next..., next_args...; atol=atol)
+        end
+        $atol
+    end |> esc
+end
 
 """
 ```
@@ -172,21 +168,6 @@ approx(1.0, <, 2.9, <, 3.0; atol=0.1)           # Returns false
 approx(1.0, ==, 1.1)                  # Returns false (using default tolerance)
 ```
 """
-function approx end
-
-approx(v1::Real, ::typeof(<), v2::Real; atol::Real=get_approx()) = v2 - v1 > atol
-approx(v1::Real, ::typeof(<=), v2::Real; atol::Real=get_approx()) = approx(v1, <, v2, atol=atol) || approx(v1, ==, v2, atol=atol)
-approx(v1::Real, ::typeof(>), v2::Real; atol::Real=get_approx()) = v1 - v2 > atol
-approx(v1::Real, ::typeof(>=), v2::Real; atol::Real=get_approx()) = approx(v1, >, v2, atol=atol) || approx(v1, ==, v2, atol=atol)
-approx(v1::Real, ::typeof(==), v2::Real; atol::Real=get_approx()) = isapprox(v1, v2, atol=atol)
-approx(v1::Real, ::typeof(!=), v2::Real; atol::Real=get_approx()) = !isapprox(v1, v2, atol=atol)
-
-function approx(v1::Real, cmp::COMPARISON_TYPES, v2::Real, args::Vararg{Union{COMPARISON_TYPES,Real}}; atol::Real=get_approx())
-    next, next_args = args[1:2], args[3:end]
-    approx(v1, cmp, v2; atol=atol) || return false
-    approx(v2, next..., next_args...; atol=atol)
-end
-
 
 
 """
@@ -222,7 +203,6 @@ function walkexpr end
 
 walkexpr(::Function, x) = x
 walkexpr(f::Function, x::Expr) = f(x) |> x -> Expr(x.head, map(arg -> walkexpr(f, arg), x.args)...)
-
 
 """
 ```
@@ -291,7 +271,7 @@ When used without an explicit tolerance, it uses the global tolerance set by `se
 macro approx end
 
 macro approx(ex::Expr)
-    :(@approx $(get_approx()) $ex) |> esc
+    :(@approx $(__module__.get_approx()) $ex) |> esc
 end
 
 macro approx(atol::Real, expr::Expr)
@@ -312,8 +292,8 @@ function approx_expr(__module__::Module, ex::Expr, atol::Real)
 end
 
 
-export get_approx, @set_approx!
+export @set_approx!
 export get_expand_filter, @set_expand_filter!
-export approx, @approx
+export @approx
 
 end
