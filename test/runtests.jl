@@ -5,13 +5,13 @@ using Test
     @testset "Global tolerance setting" begin
         original_tolerance = get_approx()
 
-        @test set_approx!(1e-5) == 1e-5
+        @test @set_approx! 1e-5 == 1e-5
         @test get_approx() == 1e-5
 
-        @test set_approx!(1e-10) == 1e-10
+        @test @set_approx! 1e-10 == 1e-10
         @test get_approx() == 1e-10
 
-        set_approx!(original_tolerance)
+        @set_approx! original_tolerance
     end
 
     @testset "approx function" begin
@@ -45,7 +45,7 @@ using Test
 
     @approx @testset "Integration with @test" begin
         @test 0 == 1e-10
-        @approx 1e-11 @test  0 < 1e-10
+        @approx 1e-11 @test 0 < 1e-10
         @approx @test 1.0 != 1.1
     end
 

@@ -33,7 +33,7 @@ This function returns the current global absolute tolerance on the approximate c
 """
 function get_approx end
 
-# get_approx() = 1e-10
+get_approx() = 1e-10
 
 """
 ```
@@ -50,13 +50,18 @@ This macro sets the current global absolute tolerance on the approximate compari
 """
 macro set_approx! end
 
-set_approx!(atol::Real) = (:(get_approx() = $atol) |> eval; return atol)
-export set_approx!
+macro set_approx!(atol)
+    quote
+        atol_val = $(esc(atol))
+        typeof(atol_val) <: Real || error("Invalid absolute tolerance value")
+        ApproximateRelations.get_approx() = atol_val
+        return atol_val
+    end
+end
 
 macro set_approx!(atol::Real)
-    :(set_approx!($atol))
+    :(ApproximateRelations.get_approx() = $atol; return $atol) |> esc
 end
-export @set_approx!
 
 """
 ```
@@ -71,11 +76,11 @@ This function returns the current global filter for macro expansion in the appro
 """
 function get_expand_filter end
 
-# get_expand_filter() = (Symbol("@test"), Symbol("@test_throws"))
+get_expand_filter() = (Symbol("@test"), Symbol("@test_throws"))
 
 """
 ```
-    set_expand_filter!(macro_symbols::Symbol...) -> Tuple{Vararg{Symbol}}
+    @set_expand_filter! macro_symbols::Expr... -> Tuple{Vararg{Symbol}}
 ```
 
 This function sets the current global filter for macro expansion in the approximate comparison operators.
@@ -86,16 +91,14 @@ This function sets the current global filter for macro expansion in the approxim
 # Returns
 - `Tuple{Vararg{Symbol}}`: the new global filter for macro expansion
 """
-function set_expand_filter! end
-
-set_expand_filter!(macro_symbols::Symbol...) = (:(get_expand_filter() = $macro_symbols) |> eval; return macro_symbols)
+macro set_expand_filter! end
 
 macro set_expand_filter!(expr_tuple::Expr...)
     expr = first(expr_tuple)
     head, args = expr.head, expr.args
     head in (:tuple, :macrocall) || error("Invalid macro call expression")
     macro_symbols = (head == :tuple) ? Tuple(first(expr.args) for expr in args) : (first(expr.args),)
-    :(set_expand_filter!($macro_symbols...))
+    esc(:(ApproximateRelations.get_expand_filter() = $macro_symbols; return $macro_symbols))
 end
 export @set_expand_filter!
 
@@ -298,11 +301,9 @@ function approx_expr(__module__::Module, ex::Expr, atol::Real)
     return ex
 end
 
-set_approx!(1e-10)
-@set_expand_filter! @test, @test_throws
 
-export get_approx, set_approx!
-export get_expand_filter, set_expand_filter!, @set_expand_filter!
+export get_approx, @set_approx!
+export get_expand_filter, @set_expand_filter!
 export approx, @approx
 
 end
