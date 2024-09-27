@@ -3,15 +3,15 @@ using Test
 
 @testset "ApproximateRelations.jl" begin
     @testset "Global tolerance setting" begin
-        original_tolerance = get_approx()
+        #original_tolerance = get_approx()
 
-        @test @set_approx! 1e-5 == 1e-5
+        @test (@set_approx! 1e-5) == 1e-5
         @test get_approx() == 1e-5
 
-        @test @set_approx! 1e-10 == 1e-10
+        @test (@set_approx! 1e-10) == 1e-10
         @test get_approx() == 1e-10
 
-        @set_approx! original_tolerance
+        @set_approx! 1e-10
     end
 
     @testset "approx function" begin
