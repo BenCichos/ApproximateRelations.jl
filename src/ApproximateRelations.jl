@@ -33,7 +33,7 @@ This function returns the current global absolute tolerance on the approximate c
 """
 function get_approx end
 
-get_approx() = 1e-10
+# get_approx() = 1e-10
 
 """
 ```
@@ -50,14 +50,17 @@ This macro sets the current global absolute tolerance on the approximate compari
 """
 macro set_approx! end
 
-macro set_approx!(atol)
-    quote
-        atol_val = $(esc(atol))
-        typeof(atol_val) <: Real || error("Invalid absolute tolerance value")
-        $(ApproximateRelations).get_approx() = atol_val
-        return atol_val
-    end
-end
+# macro set_approx!(atol)
+#     quote
+#         atol_val = $(esc(atol))
+#         typeof(atol_val) <: Real || error("Invalid absolute tolerance value")
+#         $(ApproximateRelations).get_approx() = atol_val
+#         return atol_val
+#     end
+# end
+
+set_approx!(atol::Real) = :(get_approx() = $atol) |> ApproximateRelations.eval
+export set_approx!
 
 macro set_approx!(atol::Real)
     quote
