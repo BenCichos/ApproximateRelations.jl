@@ -54,13 +54,16 @@ macro set_approx!(atol)
     quote
         atol_val = $(esc(atol))
         typeof(atol_val) <: Real || error("Invalid absolute tolerance value")
-        ApproximateRelations.get_approx() = atol_val
+        $(ApproximateRelations).get_approx() = atol_val
         return atol_val
     end
 end
 
 macro set_approx!(atol::Real)
-    :(ApproximateRelations.get_approx() = $atol; return $atol) |> esc
+    quote
+        $(ApproximateRelations).get_approx() = $atol
+        return $atol
+    end
 end
 
 """
