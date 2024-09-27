@@ -63,11 +63,15 @@ set_approx!(atol::Real) = @eval :(get_approx() = $atol)
 export set_approx!
 
 macro set_approx!(atol::Real)
-    quote
-        $(ApproximateRelations).get_approx() = $atol
-        return $atol
-    end
+    :($(__module__).get_approx() = $atol; return $atol) |> esc
 end
+
+# macro set_approx!(atol::Real)
+#     quote
+#         $(ApproximateRelations).get_approx() = $atol
+#         return $atol
+#     end
+# end
 
 """
 ```
