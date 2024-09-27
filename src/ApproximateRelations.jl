@@ -59,7 +59,7 @@ macro set_approx! end
 #     end
 # end
 
-set_approx!(atol::Real) = :(get_approx() = $atol) |> ApproximateRelations.eval
+set_approx!(atol::Real) = @eval :(get_approx() = $atol)
 export set_approx!
 
 macro set_approx!(atol::Real)
