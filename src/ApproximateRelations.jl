@@ -22,7 +22,7 @@ computations and testing scenarios where exact equality is impractical.
 """ ApproximateRelations
 
 """
-```
+```julia
     get_approx() -> Real
 ```
 
@@ -31,12 +31,10 @@ This function returns the current global absolute tolerance on the approximate c
 # Returns
 - `Real` - current global absolute tolerance on approximate comparison operators
 """
-#function get_approx end
-
-# get_approx() = 1e-10
+function get_approx end
 
 """
-```
+```julia
     @set_approx! atol::Real -> Real
 ```
 
@@ -50,28 +48,10 @@ This macro sets the current global absolute tolerance on the approximate compari
 """
 macro set_approx! end
 
-macro set_approx!(atol::Real)
-    quote
-        get_approx() = $atol
-        approx(v1::Real, ::typeof(<), v2::Real; atol::Real=$(__module__).get_approx()) = v2 - v1 > atol
-        approx(v1::Real, ::typeof(<=), v2::Real; atol::Real=$(__module__).get_approx()) = approx(v1, <, v2, atol=atol) || approx(v1, ==, v2, atol=atol)
-        approx(v1::Real, ::typeof(>), v2::Real; atol::Real=$(__module__).get_approx()) = v1 - v2 > atol
-        approx(v1::Real, ::typeof(>=), v2::Real; atol::Real=$(__module__).get_approx()) = approx(v1, >, v2, atol=atol) || approx(v1, ==, v2, atol=atol)
-        approx(v1::Real, ::typeof(==), v2::Real; atol::Real=$(__module__).get_approx()) = isapprox(v1, v2, atol=atol)
-        approx(v1::Real, ::typeof(!=), v2::Real; atol::Real=$(__module__).get_approx()) = !isapprox(v1, v2, atol=atol)
-
-        function approx(v1::Real, cmp::$(ApproximateRelations).COMPARISON_TYPES, v2::Real, args::Vararg{Union{$(ApproximateRelations).COMPARISON_TYPES,Real}}; atol::Real=$(__module__).get_approx())
-            next, next_args = args[1:2], args[3:end]
-            approx(v1, cmp, v2; atol=atol) || return false
-            approx(v2, next..., next_args...; atol=atol)
-        end
-        $atol
-    end |> esc
-end
 
 """
-```
-    get_expand_filter() -> Tuple{Vararg{Symbol}}
+```julia
+    get_macroexpand_filter() -> Tuple{Vararg{Symbol}}
 ```
 
 This function returns the current global filter for macro expansion in the approximate comparison operators.
@@ -80,13 +60,12 @@ This function returns the current global filter for macro expansion in the appro
 - `Tuple{Vararg{Symbol}}` - current global filter for macro expansion
 
 """
-function get_expand_filter end
+function get_macroexpand_filter end
 
-get_expand_filter() = (Symbol("@test"), Symbol("@test_throws"))
 
 """
-```
-    @set_expand_filter! macro_symbols::Expr... -> Tuple{Vararg{Symbol}}
+```julia
+    @set_macroexpand_filter! macro_symbols::Expr... -> Tuple{Vararg{Symbol}}
 ```
 
 This function sets the current global filter for macro expansion in the approximate comparison operators.
@@ -96,21 +75,17 @@ This function sets the current global filter for macro expansion in the approxim
 
 # Returns
 - `Tuple{Vararg{Symbol}}`: the new global filter for macro expansion
-"""
-macro set_expand_filter! end
 
-macro set_expand_filter!(expr_tuple::Expr...)
-    expr = first(expr_tuple)
-    head, args = expr.head, expr.args
-    head in (:tuple, :macrocall) || error("Invalid macro call expression")
-    macro_symbols = (head == :tuple) ? Tuple(first(expr.args) for expr in args) : (first(expr.args),)
-    esc(:(ApproximateRelations.get_expand_filter() = $macro_symbols; return $macro_symbols))
-end
-export @set_expand_filter!
+# Example
+```julia
+@set_macroexpand_filter! @test, @test_throws
+````
+"""
+macro set_macroexpand_filter! end
 
 
 """
-```
+```julia
     const COMPARISON_FUNCTIONS
 ```
 
@@ -125,7 +100,7 @@ in the context of approximate equality checks and related functionalities.
 const COMPARISON_FUNCTIONS = (:<, :<=, :>, :>=, :(==), :!=)
 
 """
-```
+```julia
     const COMPARISON_FUNCTIONS_TYPES
 ```
 
@@ -141,8 +116,10 @@ const COMPARISON_TYPES = Union{typeof(<),typeof(<=),typeof(>),typeof(>=),typeof(
 
 
 """
+```julia
     approx(v1::Real, cmp::COMPARISON_TYPES, v2::Real; atol::Real=get_approx()) -> Bool
     approx(v1::Real, cmp::COMPARISON_TYPES, v2::Real, args::Vararg{Union{COMPARISON_TYPES,Real}}; atol::Real=get_approx()) -> Bool
+```
 
 Perform approximate comparison between real numbers using the specified comparison operator.
 
@@ -162,16 +139,19 @@ This function performs approximate comparisons between real numbers using the sp
 The comparison is considered approximate within the specified tolerance. For equality comparisons, `isapprox` is used internally.
 
 # Examples
-```
+```julia
 approx(1.0, ==, 1.000001; atol=1e-5)  # Returns true
 approx(1.0, <, 2.9, <, 3.0; atol=0.1)           # Returns false
 approx(1.0, ==, 1.1)                  # Returns false (using default tolerance)
 ```
 """
+function approx end
 
 
 """
+```julia
     walkexpr(f::Function, x) -> Any
+```
 
 Walk through an expression and its child expressions, applying a function to each.
 
@@ -191,7 +171,7 @@ If `x` is an `Expr`, the function `f` is applied to `x`, and then `walkexpr` is 
 called on each argument of `x`.
 
 # Examples
-```
+```julia
 expr = :(a + b * (c - d))
 walkexpr(expr) do e
     @show e
@@ -205,7 +185,7 @@ walkexpr(::Function, x) = x
 walkexpr(f::Function, x::Expr) = f(x) |> x -> Expr(x.head, map(arg -> walkexpr(f, arg), x.args)...)
 
 """
-```
+```julia
     expand(__module__::Module, expr::Expr) -> Expr
 ```
 
@@ -225,7 +205,7 @@ non-recursively. If the expression is not a macro call or is in the filter, it r
 the original expression unchanged.
 
 # Examples
-```
+```julia
 module MyModule
     macro my_macro(x)
         :(2 * \$x)
@@ -239,13 +219,15 @@ expanded = expand(MyModule, expr)
 """
 function expand(__module__::Module, expr::Expr)
     expr.head == :macrocall || return expr
-    expr.args[1] in get_expand_filter() && return expr
+    expr.args[1] in __module__.get_macroexpand_filter() && return expr
     macroexpand(__module__, expr, recursive=false)
 end
 
 
 """
-    @approx [atol] expr
+```julia
+    @approx [atol::Real] expr
+```
 
 Macro for performing approximate comparisons with optional tolerance.
 
@@ -270,30 +252,79 @@ When used without an explicit tolerance, it uses the global tolerance set by `se
 """
 macro approx end
 
-macro approx(ex::Expr)
-    :(@approx $(__module__.get_approx()) $ex) |> esc
-end
-
-macro approx(atol::Real, expr::Expr)
-    walkexpr(ex -> approx_expr(__module__, ex, atol), expr) |> esc
-end
-
 function approx_expr(__module__::Module, ex::Expr, atol::Real)
     ex = expand(__module__, ex)
     head, args = ex.head, ex.args
     if head == :call
         first_arg = first(args)
-        first_arg in COMPARISON_FUNCTIONS && return :(approx($(args[2]), $(first_arg), $(args[3]); atol=$atol))
-        first_arg == :iszero && return :(approx(zero(typeof($(args[2]))), $(:(==)), $(args[2]); atol=$atol))
-        first_arg == :isone && return :(approx(one(typeof($(args[2]))), $(:(==)), $(args[2]); atol=$atol))
+        first_arg in COMPARISON_FUNCTIONS && return :($__module__.approx($(args[2]), $(first_arg), $(args[3]); atol=$atol))
+        first_arg == :iszero && return :($__module__.approx(zero(typeof($(args[2]))), $(:(==)), $(args[2]); atol=$atol))
+        first_arg == :isone && return :($__module__.approx(one(typeof($(args[2]))), $(:(==)), $(args[2]); atol=$atol))
     end
-    head == :comparison && return :(approx($(args[1]), $(args[2]), $(args[3:end]...); atol=$atol))
+    head == :comparison && return :($__module__.approx($(args[1]), $(args[2]), $(args[3:end]...); atol=$atol))
     return ex
 end
 
 
-export @set_approx!
-export get_expand_filter, @set_expand_filter!
-export @approx
+macro init_approx end
+
+macro init_approx(atol::Real)
+    quote
+        this_module = $__module__
+
+        @doc (@doc ApproximateRelations.get_approx)
+        get_approx() = $atol
+
+        @doc (@doc ApproximateRelations.@set_approx!)
+        macro set_approx!(atol::Real)
+            module_ref = this_module
+            :($module_ref.get_approx() = $atol) |> esc
+        end
+
+        @doc (@doc ApproximateRelations.get_macroexpand_filter)
+        get_macroexpand_filter() = (Symbol("@test"), Symbol("@test_throws"))
+
+        @doc (@doc ApproximateRelations.@get_approx)
+        macro set_macroexpand_filter!(expr_tuple::Expr...)
+            module_ref = this_module
+            expr = first(expr_tuple)
+            head, args = expr.head, expr.args
+            head in (:tuple, :macrocall) || error(ArgumentError("Invalid macro call expression"))
+            macro_symbols = (head == :tuple) ? Tuple(first(expr.args) for expr in args if expr.head == :macrocall) : (first(args),)
+            :($module_ref.get_macroexpand_filter() = $macro_symbols; return $macro_symbols) |> esc
+        end
+
+        @doc (@doc ApproximateRelations.approx)
+        function approx end
+
+        approx(v1::Real, ::typeof(<), v2::Real; atol::Real=this_module.get_approx()) = v2 - v1 > atol
+        approx(v1::Real, ::typeof(<=), v2::Real; atol::Real=this_module.get_approx()) = approx(v1, <, v2, atol=atol) || approx(v1, ==, v2, atol=atol)
+        approx(v1::Real, ::typeof(>), v2::Real; atol::Real=this_module.get_approx()) = v1 - v2 > atol
+        approx(v1::Real, ::typeof(>=), v2::Real; atol::Real=this_module.get_approx()) = approx(v1, >, v2, atol=atol) || approx(v1, ==, v2, atol=atol)
+        approx(v1::Real, ::typeof(==), v2::Real; atol::Real=this_module.get_approx()) = isapprox(v1, v2, atol=atol)
+        approx(v1::Real, ::typeof(!=), v2::Real; atol::Real=this_module.get_approx()) = !isapprox(v1, v2, atol=atol)
+
+        function approx(v1::Real, cmp::ApproximateRelations.COMPARISON_TYPES, v2::Real, args::Vararg{Union{ApproximateRelations.COMPARISON_TYPES,Real}}; atol::Real=this_module.get_approx())
+            next, next_args = args[1:2], args[3:end]
+            approx(v1, cmp, v2; atol=atol) || return false
+            approx(v2, next..., next_args...; atol=atol)
+        end
+
+        @doc (@doc ApproximateRelations.@approx)
+        macro approx end
+
+        macro approx(ex::Expr)
+            module_ref = this_module
+            :($module_ref.@approx $(module_ref.get_approx()) $ex) |> esc
+        end
+
+        macro approx(atol::Real, expr::Expr)
+            module_ref = this_module
+            ApproximateRelations.walkexpr(ex -> ApproximateRelations.approx_expr(module_ref, ex, atol), expr) |> esc
+        end
+    end |> esc
+end
+export @init_approx
+
 
 end
