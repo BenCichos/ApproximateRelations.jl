@@ -21,7 +21,7 @@ and equality checks with customizable precision, making it ideal for numerical
 computations and testing scenarios where exact equality is impractical.
 """ ApproximateRelations
 
-"""
+@doc """
 ```julia
     get_approx() -> Real
 ```
@@ -30,10 +30,9 @@ This function returns the current global absolute tolerance on the approximate c
 
 # Returns
 - `Real` - current global absolute tolerance on approximate comparison operators
-"""
-function get_approx end
+""" function get_approx end
 
-"""
+@doc """
 ```julia
     @set_approx! atol::Real -> Real
 ```
@@ -45,11 +44,10 @@ This macro sets the current global absolute tolerance on the approximate compari
 
 # Returns
 - `atol::Real`: the new global absolute tolerance
-"""
-macro set_approx! end
+""" macro set_approx! end
 
 
-"""
+@doc """
 ```julia
     get_macroexpand_filter() -> Tuple{Vararg{Symbol}}
 ```
@@ -59,11 +57,10 @@ This function returns the current global filter for macro expansion in the appro
 # Returns
 - `Tuple{Vararg{Symbol}}` - current global filter for macro expansion
 
-"""
-function get_macroexpand_filter end
+""" function get_macroexpand_filter end
 
 
-"""
+@doc """
 ```julia
     @set_macroexpand_filter! macro_symbols::Expr... -> Tuple{Vararg{Symbol}}
 ```
@@ -79,12 +76,11 @@ This function sets the current global filter for macro expansion in the approxim
 # Example
 ```julia
 @set_macroexpand_filter! @test, @test_throws
-````
-"""
-macro set_macroexpand_filter! end
+```
+""" macro set_macroexpand_filter! end
 
 
-"""
+@doc """
 ```julia
     const COMPARISON_FUNCTIONS
 ```
@@ -96,10 +92,9 @@ It includes the following symbols: `:<`, `:<=`, `:>`, `:>=`, `:(==)`, and `:!=`.
 
 These symbols are used within the module to identify and handle comparison operations
 in the context of approximate equality checks and related functionalities.
-"""
-const COMPARISON_FUNCTIONS = (:<, :<=, :>, :>=, :(==), :!=)
+""" const COMPARISON_FUNCTIONS = (:<, :<=, :>, :>=, :(==), :!=)
 
-"""
+@doc """
 ```julia
     const COMPARISON_FUNCTIONS_TYPES
 ```
@@ -111,11 +106,10 @@ It includes the following types: `typeof(<)`, `typeof(<=)`, `typeof(>)`, `typeof
 
 These types are used within the module to specify the type of comparison operations
 in function signatures and other type-related contexts for approximate equality checks and related functionalities.
-"""
-const COMPARISON_TYPES = Union{typeof(<),typeof(<=),typeof(>),typeof(>=),typeof(==),typeof(!=)}
+""" const COMPARISON_TYPES = Union{typeof(<),typeof(<=),typeof(>),typeof(>=),typeof(==),typeof(!=)}
 
 
-"""
+@doc """
 ```julia
     approx(v1::Real, cmp::COMPARISON_TYPES, v2::Real; atol::Real=get_approx()) -> Bool
     approx(v1::Real, cmp::COMPARISON_TYPES, v2::Real, args::Vararg{Union{COMPARISON_TYPES,Real}}; atol::Real=get_approx()) -> Bool
@@ -144,11 +138,10 @@ approx(1.0, ==, 1.000001; atol=1e-5)  # Returns true
 approx(1.0, <, 2.9, <, 3.0; atol=0.1)           # Returns false
 approx(1.0, ==, 1.1)                  # Returns false (using default tolerance)
 ```
-"""
-function approx end
+""" function approx end
 
 
-"""
+@doc """
 ```julia
     walkexpr(f::Function, x) -> Any
 ```
@@ -178,13 +171,12 @@ walkexpr(expr) do e
     e
 end
 ```
-"""
-function walkexpr end
+""" function walkexpr end
 
 walkexpr(::Function, x) = x
 walkexpr(f::Function, x::Expr) = f(x) |> x -> Expr(x.head, map(arg -> walkexpr(f, arg), x.args)...)
 
-"""
+@doc """
 ```julia
     expand(__module__::Module, expr::Expr) -> Expr
 ```
@@ -216,7 +208,8 @@ expr = :(MyModule.@my_macro(5))
 expanded = expand(MyModule, expr)
 # Returns :(2 * 5) if @my_macro is not in the expansion filter
 ```
-"""
+""" function expand end
+
 function expand(__module__::Module, expr::Expr)
     expr.head == :macrocall || return expr
     expr.args[1] in __module__.get_macroexpand_filter() && return expr
@@ -224,7 +217,7 @@ function expand(__module__::Module, expr::Expr)
 end
 
 
-"""
+@doc """
 ```julia
     @approx [atol::Real] expr
 ```
@@ -249,8 +242,7 @@ When used without an explicit tolerance, it uses the global tolerance set by `se
 @approx 0 < x < 1  # Chained comparison
 @approx iszero(1e-10) || isone(0.999999999) # Checks if x is approximately zero
 ```
-"""
-macro approx end
+""" macro approx end
 
 function approx_expr(__module__::Module, ex::Expr, atol::Real)
     ex = expand(__module__, ex)
@@ -324,7 +316,7 @@ macro init_approx(atol::Real)
         end
     end |> esc
 end
-export @init_approx
 
+export @init_approx
 
 end
