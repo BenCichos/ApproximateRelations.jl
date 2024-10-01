@@ -13,18 +13,27 @@ using Pkg
 Pkg.add("ApproximateRelations")
 ```
 
+## Initialisation
+
+You need to initialise the package after importing the package. This is done by calling the ```@init_approx``` macro which sets the global tolerance level of all your approximate comparisons.
+
+```
+using ApproximateRelations
+@init_approx 1e-10 # absolute tolerance level
+```
+
+The ```@init_approx``` macro defines the necessary functions and macros in the module scope that it was called from such that the package can be used. The macro expands to method definitions for the ```approx``` function, the ```get_approx``` function, and the ```get_macroexpand_filter``` function. It also defines methods for the ```@approx``` macro, the ```@set_approx!``` macro, and the ```@set_macroexpand_filter!``` macro. This is all the setup the package need such that you can perform approximate comparisons without any overhead.
+
 ## The ```approx``` function
 
 The ```approx``` function is the core function of the package that allows for approximate comparions between real numbers beyond the ```isapprox``` function.
-
-!!! info
-    By default the package uses a global absolute tolerance of ```1e-10``` for all approximate comparisons. You can view the current global absolute tolerance by calling ```get_approx``` and change the global absolute tolerance by calling ```set_approx!```.
 
 ### Basic usage
 
 ```@setup tests
 using ApproximateRelations
 using Test
+@init_approx 1e-10
 ```
 
 ```@example tests
@@ -189,7 +198,7 @@ You can even use the macro with a whole ```@testset``` and it will approximate e
 You can set a global default tolerance using ```set_approx!```:
 
 ```@example tests
-set_approx!(1e-5)
+@set_approx! 1e-5
 ```
 
 To retrieve the current global tolerance:
@@ -207,13 +216,13 @@ By default the ```@approx``` macro expands all any inner macro call before apply
 
 
 ```@example tests
-set_expand_filter!(Symbol("@show"), Symbol("@warn"))
+@set_macroexpand_filter! @show, @warn
 ```
 
 To retrieve the current list of macros that are filtered
 
 ```@example tests
-get_expand_filter()
+get_macroexpand_filter()
 ```
 
 ## Conclusion
