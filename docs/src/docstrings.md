@@ -5,12 +5,13 @@ CurrentModule = ApproximateRelations
 ```
 
 ```@docs
+@init_approx
 @approx
 approx
 get_approx
-set_approx!
-get_expand_filter
-set_expand_filter!
+@set_approx!
+get_macroexpand_filter
+@set_macroexpand_filter!
 expand
 walkexpr
 COMPARISON_FUNCTIONS

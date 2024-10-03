@@ -186,7 +186,7 @@ The ```@approx``` macro also works with ```@assert``` and ```@test``` making it 
 You can even use the macro with a whole ```@testset``` and it will approximate each comparison within the test set.
 
 ```@example tests
-  testset = @approx @testset  "Approximate Tests" begin
+  testset = @approx @testset "Approximate Tests" begin
     @test 0 == 1e-10
     @approx 1e-11 @test 0 < 1e-10
   end
@@ -214,10 +214,11 @@ This global tolerance will be used by default in all ```approx``` and ```@approx
 
 By default the ```@approx``` macro expands all any inner macro call before applying the ```@approx``` macro call. This has the benefit that any existing macro calls will perform the same without any conflict with ```@approx``` and that we can nest multiple ```@approx``` calls if needed. However, sometimes you may want to apply ```@approx``` before other macros, e.g. we filter out the ```@test``` macro such that the ```@approx``` macro is apply before the ```@test``` macro.  Currently you can only filter macro calls on a global level by using ```set_expand_filter!```:
 
-
-```@example tests
+```julia
 @set_macroexpand_filter! @show, @warn
 ```
+
+
 
 To retrieve the current list of macros that are filtered
 

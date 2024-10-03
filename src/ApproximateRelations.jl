@@ -257,8 +257,42 @@ function approx_expr(__module__::Module, ex::Expr, atol::Real)
     return ex
 end
 
+@doc """
+```julia
+    @init_approx atol::Real
+```
 
-macro init_approx end
+Initialize the ApproximateRelations module with a default tolerance.
+
+# Arguments
+- `atol::Real`: The default absolute tolerance for approximate comparisons
+
+# Description
+This macro sets up the ApproximateRelations module with an initial absolute tolerance
+for approximate comparisons. It defines several functions and macros within the calling
+module:
+
+- `get_approx()`: Returns the current global absolute tolerance
+- `@set_approx!(atol)`: Sets a new global absolute tolerance
+- `get_macroexpand_filter()`: Returns the current filter for macro expansion
+- `@set_macroexpand_filter!(macros...)`: Sets a new filter for macro expansion
+- `approx(v1, cmp, v2, ...)`: Performs approximate comparisons
+- `@approx expr`: Macro for performing approximate comparisons in expressions
+
+The macro also initializes the default macro expansion filter to include `@test` and
+`@test_throws`.
+
+# Example
+```julia
+module MyModule
+    using ApproximateRelations
+    @init_approx 1e-6
+end
+```
+
+This sets up MyModule with ApproximateRelations functionality and a default tolerance
+of 1e-6.
+""" macro init_approx end
 
 macro init_approx(atol::Real)
     quote
@@ -281,7 +315,7 @@ macro init_approx(atol::Real)
             module_ref = this_module
             expr = first(expr_tuple)
             head, args = expr.head, expr.args
-            head in (:tuple, :macrocall) || error(ArgumentError("Invalid macro call expression"))
+            head in (:tuple, :macrocall) || throw ArgumentError("Invalid macro call expression")
             macro_symbols = (head == :tuple) ? Tuple(first(expr.args) for expr in args if expr.head == :macrocall) : (first(args),)
             :($module_ref.get_macroexpand_filter() = $macro_symbols; return $macro_symbols) |> esc
         end
