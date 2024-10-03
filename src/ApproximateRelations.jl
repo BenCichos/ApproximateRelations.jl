@@ -270,7 +270,7 @@ macro init_approx(atol::Real)
         @doc (@doc ApproximateRelations.@set_approx!)
         macro set_approx!(atol::Real)
             module_ref = this_module
-            :($module_ref.get_approx() = $atol) |> esc
+            :($module_ref.get_approx() = $atol; return $atol) |> esc
         end
 
         @doc (@doc ApproximateRelations.get_macroexpand_filter)
@@ -316,7 +316,6 @@ macro init_approx(atol::Real)
         end
     end |> esc
 end
-
 export @init_approx
 
 end
