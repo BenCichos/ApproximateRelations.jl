@@ -1,10 +1,10 @@
 using ApproximateRelations
 using Test
 
+@init_approx 1e-10
+
 @testset "ApproximateRelations.jl" begin
     @testset "Global tolerance setting" begin
-        #original_tolerance = get_approx()
-
         @test (@set_approx! 1e-5) == 1e-5
         @test get_approx() == 1e-5
 
