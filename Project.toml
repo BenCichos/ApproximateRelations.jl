@@ -1,7 +1,7 @@
 name = "ApproximateRelations"
 uuid = "99331840-cbe1-42a1-a01e-7fb3c709a0a8"
 authors = ["“BenCichos” <“b.cichos@me.com”> and contributors"]
-version = "0.1.0"
+version = "0.1.1"
 
 [compat]
 julia = "1.10"
