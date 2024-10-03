@@ -315,7 +315,7 @@ macro init_approx(atol::Real)
             module_ref = this_module
             expr = first(expr_tuple)
             head, args = expr.head, expr.args
-            head in (:tuple, :macrocall) || throw ArgumentError("Invalid macro call expression")
+            head in (:tuple, :macrocall) || throw(ArgumentError("Invalid macro call expression"))
             macro_symbols = (head == :tuple) ? Tuple(first(expr.args) for expr in args if expr.head == :macrocall) : (first(args),)
             :($module_ref.get_macroexpand_filter() = $macro_symbols; return $macro_symbols) |> esc
         end
