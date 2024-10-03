@@ -14,5 +14,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/BenCichos/ApproximateRelations.jl",
-    devbranch="dev",
+    devbranch="main",
 )
